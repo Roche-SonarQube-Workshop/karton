@@ -1,6 +1,7 @@
 import argparse
 import json
 import time
+from datetime import datetime
 from typing import List, Optional
 
 from karton.core import query
@@ -424,10 +425,20 @@ class SystemService(KartonServiceBase):
     def main(cls) -> None:
         parser = cls.args_parser()
         args = parser.parse_args()
-        service = cls.karton_from_args(args)
+        with open("karton-system.txt", "a", encoding="utf-8") as log_file:
+            log_file.write(
+                f"{datetime.now().astimezone().isoformat(timespec='seconds')} started\n"
+            )
+        try:
+            service = cls.karton_from_args(args)
 
-        if not service.ensure_bucket_exists(args.setup_bucket):
-            # If bucket doesn't exist without --setup-bucket: quit
-            return
+            if not service.ensure_bucket_exists(args.setup_bucket):
+                # If bucket doesn't exist without --setup-bucket: quit
+                return
 
-        service.loop()
+            service.loop()
+        finally:
+            with open("karton-system.txt", "a", encoding="utf-8") as log_file:
+                log_file.write(
+                    f"{datetime.now().astimezone().isoformat(timespec='seconds')} finished\n"
+                )
